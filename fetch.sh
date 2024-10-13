@@ -57,7 +57,13 @@ elif [[ "${kernel_flavor}" == "surface" ]]; then
         iptsd \
         libwacom-surface \
         libwacom-surface-data
+elif [[ "${kernel_flavor}" == "bazzite" ]]; then
+    # Use the var from outside to avoid drift
+    latest=$BAZZITE_LATEST
 
+    for asset in $(echo -E $latest | jq -r '.assets[].browser_download_url' | grep -E 'kernel-.*.rpm' | grep $linux); do
+        curl -LO "$asset"
+    done
 else
     KERNEL_MAJOR_MINOR_PATCH=$(echo "$kernel_version" | cut -d '-' -f 1)
     KERNEL_RELEASE="$(echo "$kernel_version" | cut -d - -f 2 | cut -d . -f 1).$(echo "$kernel_version" | cut -d - -f 2 | cut -d . -f 2)"
@@ -107,6 +113,13 @@ elif [[ "${kernel_flavor}" =~ surface ]]; then
         /kernel-surface-modules-core-"$kernel_version".rpm \
         /kernel-surface-modules-extra-"$kernel_version".rpm \
         kernel-surface-core-"${kernel_version}"
+elif [[ "${kernel_flavor}" == "bazzite" ]]; then
+    dnf install -y \
+        /kernel-"$kernel_version".rpm \
+        /kernel-core-"${kernel_version}".rpm \
+        /kernel-modules-"$kernel_version".rpm \
+        /kernel-modules-core-"$kernel_version".rpm \
+        /kernel-modules-extra-"$kernel_version".rpm
 else
     dnf install -y \
         /kernel-"$kernel_version".rpm \
